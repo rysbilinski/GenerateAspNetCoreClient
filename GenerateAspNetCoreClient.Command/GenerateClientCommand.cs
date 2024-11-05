@@ -79,7 +79,9 @@ namespace GenerateAspNetCoreClient.Command
                             _ => ""
                         };
 
-                        var type = p.Source == ParameterSource.File ? "MultipartItem" : p.Type.GetName(ambiguousTypes);
+                        var type = p.Source == ParameterSource.File ? 
+                            "MultipartItem" : 
+                            p.Type.GetName(ambiguousTypes);
                         var defaultValue = p.DefaultValueLiteral == null ? "" : " = " + p.DefaultValueLiteral;
                         return $"{attribute}{type} {p.ParameterName}{defaultValue}";
                     })

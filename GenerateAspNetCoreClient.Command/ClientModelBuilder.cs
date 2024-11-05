@@ -257,7 +257,7 @@ namespace GenerateAspNetCoreClient.Command
 
                 parameterName = new string(parameterName.Where(c => char.IsLetterOrDigit(c)).ToArray());
 
-                var type = parameterDescription.Type ?? typeof(string);
+                var type = parameterDescription.ModelMetadata?.ModelType ?? parameterDescription.Type ?? typeof(string);
 
                 var defaultValue = GetDefaultValueLiteral(parameterDescription, type);
 
