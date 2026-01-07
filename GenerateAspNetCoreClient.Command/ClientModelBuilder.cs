@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Namotion.Reflection;
 
 namespace GenerateAspNetCoreClient.Command
 {
@@ -134,7 +133,7 @@ namespace GenerateAspNetCoreClient.Command
 
             return new EndpointMethod
             (
-                xmlDoc: GetXmlDoc(apiDescription),
+                xmlDoc: null,
                 httpMethod: new HttpMethod(apiDescription.HttpMethod ?? HttpMethod.Get.Method),
                 path: apiDescription.RelativePath,
                 responseType: responseType,
@@ -312,23 +311,6 @@ namespace GenerateAspNetCoreClient.Command
                 .ToHashSet();
         }
 
-        private static string? GetXmlDoc(ApiDescription apiDescription)
-        {
-            var xmlElement = (apiDescription.ActionDescriptor as ControllerActionDescriptor)?.MethodInfo.GetXmlDocsElement();
-
-            if (xmlElement == null)
-                return null;
-
-            var xmlLines = xmlElement.Elements()
-                .Select(e => e.ToString())
-                .SelectMany(s => s.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
-                .Select(line => line.Trim().Replace("cref=\"T:", "cref=\""));
-
-            var xmlDoc = string.Join(Environment.NewLine, xmlLines).Indent("/// ");
-
-            return xmlDoc;
-        }
-
         private static Type? GetResponseType(ApiDescription apiDescription)
         {
             var responseType = apiDescription.SupportedResponseTypes
@@ -410,16 +392,12 @@ namespace GenerateAspNetCoreClient.Command
 
         private static string? GetDefaultValueLiteral(ApiParameterDescription parameter, Type parameterType)
         {
-            // Use reflection for AspNetCore 2.1 compatibility.
-            var defaultValue = parameter.TryGetPropertyValue<object>(nameof(parameter.DefaultValue));
-
-            if (defaultValue != null)
+            if (parameter.DefaultValue != null)
             {
-                // If defaultValue is not null - return it.
-                return defaultValue.ToLiteral();
+                return parameter.DefaultValue.ToLiteral();
             }
 
-            var isRequired = parameter.TryGetPropertyValue<bool?>(nameof(parameter.IsRequired)) == true;
+            var isRequired = parameter.IsRequired;
             isRequired |= parameter.ModelMetadata?.IsBindingRequired == true;
 
             if (!parameterType.IsValueType || parameterType.IsNullable())

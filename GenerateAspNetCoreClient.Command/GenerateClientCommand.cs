@@ -51,6 +51,7 @@ namespace GenerateAspNetCoreClient.Command
 
             var methodDescriptions = endpointMethods.Select(endpointMethod =>
             {
+                Console.WriteLine($"Generating: {endpointMethod.Path}");
                 var xmlDoc = endpointMethod.XmlDoc;
 
                 if (!string.IsNullOrEmpty(xmlDoc))

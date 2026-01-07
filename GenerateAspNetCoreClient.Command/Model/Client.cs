@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace GenerateAspNetCoreClient.Command.Model
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Client
     {
         /// <summary>
@@ -30,5 +32,6 @@ namespace GenerateAspNetCoreClient.Command.Model
             EndpointMethods = endpointMethods;
         }
 
+        private string DebuggerDisplay => $"{Name} | Namespace={Namespace} | Location={Location} | Endpoints={EndpointMethods.Count}";
     }
 }

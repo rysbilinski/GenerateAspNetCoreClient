@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace GenerateAspNetCoreClient.Command.Model
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class ClientCollection : IEnumerable<Client>
     {
         public IReadOnlyList<Client> Clients { get; }
@@ -28,5 +30,7 @@ namespace GenerateAspNetCoreClient.Command.Model
         {
             return Clients.GetEnumerator();
         }
+
+        private string DebuggerDisplay => $"Clients={Clients.Count}, AmbiguousTypes={AmbiguousTypes.Count}";
     }
 }
