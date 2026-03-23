@@ -46,6 +46,11 @@ namespace DotNet.Cli.Build
             string configuration = null,
             string runtime = null)
         {
+            if (configuration == null)
+            {
+                configuration = "Debug";
+            }
+
             var file = GetProjectFilePath(path);
 
             if (buildExtensionsDir == null)

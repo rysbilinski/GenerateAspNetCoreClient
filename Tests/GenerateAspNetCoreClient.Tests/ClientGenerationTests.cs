@@ -21,7 +21,10 @@ namespace GenerateAspNetCoreClient.Tests
         [TearDown]
         public void CleanOutput()
         {
-            Directory.Delete(_outPath, true);
+            if (Directory.Exists(_outPath))
+            {
+                Directory.Delete(_outPath, true);
+            }
         }
 
         [TestCase("TestWebApi.Controllers")]

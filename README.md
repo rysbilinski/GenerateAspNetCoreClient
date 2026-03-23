@@ -1,17 +1,28 @@
 
-[![Nuget](https://img.shields.io/nuget/v/GenerateAspNetCoreClient.Refit)](https://www.nuget.org/packages/GenerateAspNetCoreClient.Refit/)
-
 # GenerateAspNetCoreClient
 DotNet tool to generate [Refit](https://github.com/reactiveui/refit) HTTP client types from ASP.NET Core api controllers.
 
 ## Prerequisites
-Tool requires .NET 6 runtime installed, and it supports projects with ASP.NET Core 6, 5, 3.1.
+Tool requires the .NET 10 SDK/runtime installed.
+
+## Build package
+Build the local tool package:
+
+`dotnet pack GenerateAspNetCoreClient/GenerateAspNetCoreClient.csproj -c Release`
+
+The package is written to:
+
+`GenerateAspNetCoreClient/nupkg/GenerateAspNetCoreClient.Refit.Rb.0.19.0.nupkg`
+
+Install it from that local folder in another project or on your machine:
+
+`dotnet tool install --global --add-source ./GenerateAspNetCoreClient/nupkg GenerateAspNetCoreClient.Refit.Rb`
 
 
 ## Usage
-Install dotnet tool from Nuget:
+Install the dotnet tool:
 
-`dotnet tool install GenerateAspNetCoreClient.Refit -g`
+`dotnet tool install GenerateAspNetCoreClient.Refit.Rb -g`
 
 Then execute the following in directory with your Web project:
 

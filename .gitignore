@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 
 /GenerateAspNetCoreClient/Properties/debug-paths.txt
+.DS_Store
