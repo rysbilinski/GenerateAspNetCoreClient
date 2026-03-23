@@ -20,6 +20,7 @@ namespace GenerateAspNetCoreClient.Command
         private readonly ApiDescriptionGroupCollection apiExplorer;
         private readonly GenerateClientOptions options;
         private readonly string[] additionalNamespaces;
+        private readonly IReadOnlyList<NamespaceMapEntry> namespaceMappings;
 
         public ClientModelBuilder(
             ApiDescriptionGroupCollection apiExplorer,
@@ -29,6 +30,7 @@ namespace GenerateAspNetCoreClient.Command
             this.apiExplorer = apiExplorer;
             this.options = options;
             this.additionalNamespaces = additionalNamespaces;
+            namespaceMappings = ParseNamespaceMappings(options.NamespaceMap);
         }
 
         public ClientCollection GetClientCollection()
@@ -93,7 +95,7 @@ namespace GenerateAspNetCoreClient.Command
         {
             apiDescriptions = HandleDuplicates(apiDescriptions);
 
-            var subPath = GetSubPath(controllerInfo, commonControllerNamespace);
+            var subPath = GetSubPath(controllerInfo, commonControllerNamespace, namespaceMappings);
 
             var name = options.TypeNamePattern.Replace("[controller]", controllerInfo.ControllerName);
             var clientNamespace = string.Join(".", new[] { options.Namespace }.Concat(subPath));
@@ -414,14 +416,91 @@ namespace GenerateAspNetCoreClient.Command
             return null;
         }
 
-        private static string[] GetSubPath(ControllerInfo controllerActionDescriptor, string commonNamespace)
+        private static string[] GetSubPath(
+            ControllerInfo controllerActionDescriptor,
+            string commonNamespace,
+            IReadOnlyList<NamespaceMapEntry> namespaceMappings)
         {
-            return (controllerActionDescriptor.ControllerTypeInfo.Namespace ?? "")
-                .Substring(commonNamespace.Length)
+            var fullNamespace = NormalizeNamespace(controllerActionDescriptor.ControllerTypeInfo.Namespace ?? "");
+            var mappedFullNamespace = ApplyNamespaceMappings(fullNamespace, namespaceMappings);
+
+            if (!string.Equals(mappedFullNamespace, fullNamespace, StringComparison.Ordinal))
+            {
+                return mappedFullNamespace
+                    .Split(".", StringSplitOptions.RemoveEmptyEntries)
+                    .ToArray();
+            }
+
+            var derivedNamespace = NormalizeNamespace((controllerActionDescriptor.ControllerTypeInfo.Namespace ?? "")
+                .Substring(commonNamespace.Length));
+
+            var mappedNamespace = ApplyNamespaceMappings(derivedNamespace, namespaceMappings);
+
+            return mappedNamespace
+                .Split(".", StringSplitOptions.RemoveEmptyEntries)
+                .ToArray();
+        }
+
+        private static string NormalizeNamespace(string namespaceValue)
+        {
+            return string.Join(".", namespaceValue
                 .Split(".")
                 .Select(nsPart => nsPart.Replace("Controllers", ""))
-                .Where(nsPart => nsPart != "")
+                .Where(nsPart => nsPart != ""));
+        }
+
+        private static IReadOnlyList<NamespaceMapEntry> ParseNamespaceMappings(string? namespaceMap)
+        {
+            if (string.IsNullOrWhiteSpace(namespaceMap))
+                return Array.Empty<NamespaceMapEntry>();
+
+            return namespaceMap
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(entry =>
+                {
+                    var separatorIndex = entry.IndexOf('=');
+
+                    if (separatorIndex <= 0 || separatorIndex == entry.Length - 1)
+                    {
+                        throw new ArgumentException(
+                            $"Invalid namespace map entry '{entry}'. Expected format 'Source=Target'.",
+                            nameof(namespaceMap));
+                    }
+
+                    return new NamespaceMapEntry(
+                        source: entry[..separatorIndex].Trim(),
+                        target: entry[(separatorIndex + 1)..].Trim());
+                })
+                .OrderByDescending(entry => entry.Source.Length)
                 .ToArray();
+        }
+
+        private static string ApplyNamespaceMappings(
+            string derivedNamespace,
+            IReadOnlyList<NamespaceMapEntry> namespaceMappings)
+        {
+            foreach (var mapping in namespaceMappings)
+            {
+                if (derivedNamespace.Equals(mapping.Source, StringComparison.Ordinal))
+                    return mapping.Target;
+
+                if (derivedNamespace.StartsWith(mapping.Source + ".", StringComparison.Ordinal))
+                    return mapping.Target + derivedNamespace[mapping.Source.Length..];
+            }
+
+            return derivedNamespace;
+        }
+
+        private readonly struct NamespaceMapEntry
+        {
+            public NamespaceMapEntry(string source, string target)
+            {
+                Source = source;
+                Target = target;
+            }
+
+            public string Source { get; }
+            public string Target { get; }
         }
 
         private static List<ApiDescription> HandleDuplicates(List<ApiDescription> apiDescriptions)

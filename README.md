@@ -12,7 +12,7 @@ Build the local tool package:
 
 The package is written to:
 
-`GenerateAspNetCoreClient/nupkg/GenerateAspNetCoreClient.Refit.Rb.0.19.0.nupkg`
+`GenerateAspNetCoreClient/nupkg/GenerateAspNetCoreClient.Refit.Rb.0.20.0.nupkg`
 
 Install it from that local folder in another project or on your machine:
 
@@ -27,6 +27,10 @@ Install the dotnet tool:
 Then execute the following in directory with your Web project:
 
 `dotnet-generate-client MyApiProjectPath -o OutPath -n My.Client.Namespace`
+
+To remap controller namespace prefixes when deriving generated folders and namespaces:
+
+`dotnet-generate-client MyApiProjectPath -o OutPath -n My.Client.Namespace --namespace-map "Services.Accounts=Accounts;Services.Training=Training"`
 
 Tool will generate Refit interfaces based on endpoints defined in your project. Note that only .cs files are created, you still need to add project file, with project references for models (if any), and [Refit](https://www.nuget.org/packages/Refit/) package reference.
 
@@ -98,4 +102,7 @@ namespace Test.Name.Space
   --include-types             Include only controller types with substring in full name (including namespace).
 
   --include-paths             Include only endpoints with substring in relative path.
+
+  --namespace-map             Remap derived controller namespace prefixes when generating namespaces/folders.
+                              Format: Source=Target;Source2=Target2
 ```

@@ -42,5 +42,8 @@ namespace GenerateAspNetCoreClient.Options
 
         [Option("include-paths", Required = false, HelpText = "Include only endpoints with substring in relative path.")]
         public string? IncludePaths { get; set; }
+
+        [Option("namespace-map", Required = false, HelpText = "Remap derived controller namespace prefixes when generating namespaces/folders. Format: Source=Target;Source2=Target2")]
+        public string? NamespaceMap { get; set; }
     }
 }
